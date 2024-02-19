@@ -8,7 +8,8 @@ I built this app to learn how to stream data and process csv file contents.
 
 First, could you fork this repo?  
 Then clone your forked version.  
-Cd into project directory    
+Cd into project directory  
+Run `npm i` to install project's dependencies  
 Run the following command on the CLI in the root directory of the project:
 
 ```bash
