@@ -1,118 +1,142 @@
 import Image from "next/image";
 import { Inter } from "next/font/google";
+import { IAPIResponse } from "@/types/apiResponse.type";
+import { IPlanet } from "../types/planet.type";
+import { useState, useEffect } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home() {
+const IndexPage = () => {
+  const [data, setData] = useState<IPlanet[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/planets");
+        const result: IAPIResponse = await response.json();
+        setData(result?.planets || []);
+      } catch (error) {
+        console.error("Error fetching CSV data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-    >
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/pages/index.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <main className={`flex min-h-screen flex-col p-24 ${inter.className}`}>
+      {data.length === 0 ? (
+        <section className="flex min-h-screen flex-col items-center justify-center p-24">
+          <Image
+            src="/loader.gif"
+            sizes="max-width: 100px) 50vw, 20%"
+            height={100}
+            width={100}
+            alt="Loader"
+            unoptimized={true}
+          />
+        </section>
+      ) : (
+        <>
+          <div className="z-10 max-w-5xl w-full items-center justify-between font-mono lg:flex">
+            <h1 className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30 text-2xl font-bold">
+              List of Habitable Planets
+            </h1>
+            <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
+              <p
+                className="flex place-items-center gap-1 p-2 lg:pointer-events-auto lg:p-0"
+              >
+                Data source:{" "}
+                <a
+                  href="https://exoplanetarchive.ipac.caltech.edu/docs/KeplerMission.html"
+                  className="group rounded-lg border border-transparent px-1 py-1 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >NASA Exoplanet Archive</a>
+              </p>
+            </div>
+          </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700/10 after:dark:from-sky-900 after:dark:via-[#0141ff]/40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+          <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 md:grid-cols-2 md:text-left mt-8">
+            {data.map((planet) => (
+              <div
+                key={planet.kepid}
+                className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+              >
+                <h2 className={`mb-3 text-xl font-semibold`}>
+                  {planet.kepler_name}{" "}
+                  <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                    {planet.koi_disposition === "CONFIRMED" && (
+                      <Image
+                        src="/green_checkmark.jpg"
+                        sizes="max-width: 30px) 20vw, 20%"
+                        height={22}
+                        width={22}
+                        alt="Confirmed"
+                        unoptimized={true}
+                        className="rounded-full"
+                      />
+                    )}
+                  </span>
+                </h2>
+                <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
+                  More in-depth information about {planet.kepler_name}
+                </p>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Score: {planet.koi_score}
+                </span>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Period: {planet.koi_period}
+                </span>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Time 0bk: {planet.koi_time0bk}
+                </span>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Impact: {planet.koi_impact}
+                </span>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Duration: {planet.koi_duration}
+                </span>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Depth: {planet.koi_depth}
+                </span>
+                <span className="inline-block text-sm mx-0.5 color: rgb(107 114 128);">
+                  KOI Insol: {planet.koi_insol}
+                </span>
+              </div>
+            ))}
+          </div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Discover and deploy boilerplate example Next.js&nbsp;projects.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+          <div className="overflow-x-scroll w-full mt-8">
+          <h2 className={`mb-3 text-xl font-semibold underline mt-2 mb-6`}>Planets Full Details</h2>
+            <table className="table-auto text-sm">
+              <thead>
+                <tr>
+                  {data.length > 0 &&
+                    Object.keys(data[0]).map((header) => (
+                      <th key={header} className="border border-slate-600 p-2">
+                        {header}
+                      </th>
+                    ))}
+                </tr>
+              </thead>
+              <tbody className="opacity-70">
+                {data.map((row, index) => (
+                  <tr key={index}>
+                    {Object.values(row).map((value, idx) => (
+                      <td key={idx} className="border border-slate-700 p-2">
+                        {value}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </main>
   );
-}
+};
+
+export default IndexPage;
