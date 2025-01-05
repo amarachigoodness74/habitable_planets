@@ -6,11 +6,11 @@ I built this app to learn how to stream data and process csv file contents.
 
 ## Setting up the development environment
 
-First, could you fork this repo?  
-Then clone your forked version.  
-Cd into project directory  
-Run `npm i` to install project's dependencies  
-Run the following command on the CLI in the root directory of the project:
+- First, could you fork this repo?  
+- Then clone your forked version.  
+- Cd into project directory  
+- Run `npm i` to install project's dependencies  
+- Run the following command on the CLI in the root directory of the project:
 
 ```bash
 npm run dev
