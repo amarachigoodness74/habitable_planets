@@ -2,7 +2,7 @@ export interface IPlanet {
   kepid: string;
   kepoi_name: string;
   kepler_name?: string;
-  koi_disposition?: string;
+  koi_disposition: string;
   koi_pdisposition?: string;
   koi_score?: string;
   koi_fpflag_nt?: string;
@@ -24,13 +24,13 @@ export interface IPlanet {
   koi_depth?: string;
   koi_depth_err1?: string;
   koi_depth_err2?: string;
-  koi_prad?: number;
+  koi_prad: number;
   koi_prad_err1?: string;
   koi_prad_err2?: string;
-  koi_teq?: string;
+  koi_teq: number;
   koi_teq_err1?: string;
   koi_teq_err2?: string;
-  koi_insol?: number;
+  koi_insol: number;
   koi_insol_err1?: string;
   koi_insol_err2?: string;
   koi_model_snr?: string;
@@ -48,4 +48,21 @@ export interface IPlanet {
   ra?: string;
   dec?: string;
   koi_kepmag?: string;
+}
+
+export enum KoiDisposition {
+  confirmed = "CONFIRMED",
+  candidate = "CANDIDATE",
+  false_positive = "FALSE POSITIVE",
+}
+
+export type PlanetsByDisposition = {
+  name: string;
+  planets: number;
+};
+
+export interface IPieData {
+  name: string;
+  value: number;
+  color: string;
 }

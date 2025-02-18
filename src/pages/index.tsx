@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { IAPIResponse } from "@/types/apiResponse.type";
-import { IPlanet } from "../types/planet.type";
+import { useQuery } from "@tanstack/react-query";
 import {
   Legend,
   Bar,
@@ -13,43 +11,57 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  PieChart,
+  Cell,
+  Pie,
 } from "recharts";
 import Header from "@/components/Header";
-import { ExoplanetCard } from "@/components/ExoplanetGrid";
+import {
+  EarthLikeCustomTooltip,
+  EarthLikeSunlightCustomTooltip,
+} from "@/components/CustomTooltip";
+import { fetchPlanetsData } from "./utils/helpers";
+import PageLoader from "@/components/PageLoader";
+import ScrollToTop from "@/components/ScroolToTopBtn";
 
 const IndexPage = () => {
-  const [data, setData] = useState<IPlanet[]>([]);
-  const [dispositionData, setDispositionData] = useState([]);
-  const [dispositionData1, setDispositionData1] = useState([]);
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["planetsData"],
+    queryFn: () => fetchPlanetsData("/api/planets-charts"),
+    staleTime: Infinity, // Data will never be considered stale
+  });
+  if (isLoading) return <PageLoader />;
+  if (error)
+    return (
+      <p className="flex items-center justify-center h-screen">
+        Error: {error.message}
+      </p>
+    );
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/api/habitable-planets");
-        const result: IAPIResponse = await response.json();
-        setData(result);
-        setDispositionData([
-          { name: "Confirmed", planets: result.stats.confirmed },
-          { name: "Candidate", planets: result.stats.candidate },
-          { name: "False Positive", planets: result.stats.falsePositive },
-        ]);
-        setDispositionData1(result.raduisVsTemperature);
-      } catch (error) {
-        console.error("Error fetching CSV data:", error);
-      }
-    };
+  const {
+    planets,
+    earthLikePlanets,
+    recievesSunlightLikeEarth,
+    planetsByDisposition,
+    habitablePlanets,
+  } = data;
 
-    fetchData();
-  }, []);
+  const nonHabitablePlanets = planets.length - habitablePlanets.length;
+  const pieData = [
+    { name: "Habitable", value: habitablePlanets.length, color: "#4CAF50" },
+    { name: "Non-Habitable", value: nonHabitablePlanets, color: "#F44336" },
+  ];
 
   return (
     <>
       <Header />
-      <div className="flex justify-between gap-16 mx-6">
+      <div className="flex flex-col md:flex-row justify-between gap-12 my-24 mx-6">
         <div className="w-full">
-          <h2 className="font-bold text-xl mb-4">Planets by Disposition</h2>
+          <h2 className="border border-gray-600 max-w-[300px] rounded-xl font-bold text-xl my-8 p-2">
+            Planets by Disposition
+          </h2>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={dispositionData}>
+            <BarChart data={planetsByDisposition}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -60,23 +72,31 @@ const IndexPage = () => {
           </ResponsiveContainer>
         </div>
         <div className="w-full">
-          <h2 className="font-bold text-xl mb-4">
-            Planets Radius by Temperature
+          <h2 className="border border-gray-600 max-w-[300px] rounded-xl font-bold text-xl my-8 p-2">
+            Earth-like Planets
           </h2>
           <ResponsiveContainer width="100%" height={400}>
             <ScatterChart>
               <CartesianGrid />
-              <XAxis type="number" dataKey="raduis" name="Radius" unit="RE" />
+              <XAxis
+                type="number"
+                dataKey="koi_prad"
+                name="Planetary Radius (Earth Radii)"
+              />
               <YAxis
                 type="number"
-                dataKey="temperature"
-                name="Temperature"
-                unit="K"
+                dataKey="koi_teq"
+                name="Equilibrium Temperature (K)"
               />
-              <Tooltip cursor={{ strokeDasharray: "3 3" }} />
+              <Tooltip
+                content={
+                  <EarthLikeCustomTooltip active payload={earthLikePlanets} />
+                }
+                cursor={{ strokeDasharray: "3 3" }}
+              />
               <Scatter
                 name="Exoplanets"
-                data={dispositionData1}
+                data={earthLikePlanets}
                 fill="#8884d8"
               />
             </ScatterChart>
@@ -84,17 +104,86 @@ const IndexPage = () => {
         </div>
       </div>
 
-      <div className="mt-12 w-full">
-        <h2 className="border border-gray-600 max-w-[500px] rounded-xl text-2xl font-bold m-8 p-2">
-          List of Habitable Planets
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
-          {data.habitablePlanets &&
-            data.habitablePlanets.map((planet, index) => (
-              <ExoplanetCard key={index} planet={planet} />
-            ))}
+      <div className="flex flex-col md:flex-row justify-between gap-16 my-24 mx-6">
+        <div className="w-full">
+          <h2 className="border border-gray-600 max-w-[300px] rounded-xl font-bold text-xl my-8 p-2">
+            Earth-Like Sunlight Planets
+          </h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <ScatterChart>
+              <CartesianGrid />
+              <XAxis
+                type="number"
+                dataKey="koi_prad"
+                name="Planetary Radius (Earth Radii)"
+              />
+              <YAxis
+                type="number"
+                dataKey="koi_insol"
+                name="Insolation Flux (Earth Flux)"
+              />
+              <ZAxis
+                type="number"
+                dataKey="koi_prad"
+                range={[50, 400]}
+                name="Bubble Size (Planet Size)"
+              />
+              <Tooltip
+                content={
+                  <EarthLikeSunlightCustomTooltip
+                    active
+                    payload={recievesSunlightLikeEarth}
+                  />
+                }
+                cursor={{ strokeDasharray: "3 3" }}
+              />
+              <Scatter
+                name="Exoplanets"
+                data={recievesSunlightLikeEarth}
+                fill="#82ca9d"
+              />
+            </ScatterChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="w-full">
+          <h2 className="border border-gray-600 max-w-[400px] rounded-xl font-bold text-xl my-8 p-2">
+            Habitable Vs Non-Habitable Planets
+          </h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={180}
+                dataKey="value"
+                label
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
+
+      <div className="my-24 mx-6">
+        <h2 className="border border-gray-600 max-w-[300px] rounded-xl font-bold text-xl my-8 p-2">
+          Planet Size Distribution
+        </h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={planets}>
+            <XAxis dataKey="kepler_name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="koi_prad" fill="#4F46E5" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <ScrollToTop />
     </>
   );
 };

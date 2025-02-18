@@ -1,14 +1,11 @@
-import fs from "fs";
 import type { NextApiRequest, NextApiResponse } from "next";
+import fs from "fs";
 import { parse } from "csv-parse";
 import { IPlanet } from "../../types/planet.type";
-import { IAPIResponse } from "../../types/apiResponse.type";
-
-enum KoiDisposition {
-  confirmed = "CONFIRMED",
-  candidate = "CANDIDATE",
-  false_positive = "FALSE POSITIVE",
-}
+import {
+  IAPIResponseForHabitablePlanet,
+  IAPIErrorResponse,
+} from "../../types/apiResponse.type";
 
 const isHabitablePlanet = (planet: IPlanet) => {
   return (
@@ -19,21 +16,12 @@ const isHabitablePlanet = (planet: IPlanet) => {
   );
 };
 
-const stats = {
-  confirmed: 0,
-  candidate: 0,
-  falsePositive: 0,
-  others: 0,
-};
-
 export default function handler(
   req: NextApiRequest,
-  res: NextApiResponse<IAPIResponse>
+  res: NextApiResponse<IAPIResponseForHabitablePlanet | IAPIErrorResponse>
 ) {
-  const planets: any = [];
-  const habitablePlanets: any = [];
-  const raduisVsTemperature = [];
-  const raduisVsTemperatureVsInsolation = [];
+  const planets: IPlanet[] = [];
+  const habitablePlanets: IPlanet[] = [];
 
   fs.createReadStream(process.cwd() + "/src/kepler_data.csv", "utf8")
     .pipe(
@@ -47,41 +35,11 @@ export default function handler(
       if (data && isHabitablePlanet(data)) {
         habitablePlanets.push(data);
       }
-      // Disposition Data
-      if (data.koi_disposition === KoiDisposition.candidate) {
-        stats.candidate += 1;
-      } else if (data.koi_disposition === KoiDisposition.confirmed) {
-        stats.confirmed += 1;
-      } else if (data.koi_disposition === KoiDisposition.false_positive) {
-        stats.falsePositive += 1;
-      } else {
-        stats.others += 1;
-      }
-
-      // Raduis Vs Temperature Data
-      let rT = {
-        raduis: data.koi_prad,
-        temperature: data.koi_teq,
-      };
-      raduisVsTemperature.push(rT);
-
-      // Raduis Vs Temperature Vs Isolation Data
-      let rTI = {
-        raduis: data.koi_prad,
-        temperature: data.koi_teq,
-        insolation: data.koi_insol,
-      };
-      raduisVsTemperatureVsInsolation.push(rTI);
     })
     .on("end", () => {
-      console.log("Done reading data!", habitablePlanets.length);
-      // return res.status(200).json({ planets: habitablePlanets });
       return res.status(200).json({
         planets,
         habitablePlanets,
-        raduisVsTemperature,
-        raduisVsTemperatureVsInsolation,
-        stats,
       });
     })
     .on("error", (err) => {

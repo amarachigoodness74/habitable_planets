@@ -10,7 +10,7 @@ const Header = () => {
           data-driven insights to explore planetary properties and assess
           habitability conditions.
         </p>
-        <nav className="mt-4 flex gap-6">
+        <nav className="flex flex-col sm:flex-row mt-4 gap-6">
           <Link href="/" className="text-blue-400 hover:underline">
             🏠 Home
           </Link>

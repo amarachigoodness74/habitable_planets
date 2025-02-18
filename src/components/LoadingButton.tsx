@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React from "react";
 
 export default function LoadingButton() {
-
   return (
     <svg
       className="w-6 h-6 animate-spin"

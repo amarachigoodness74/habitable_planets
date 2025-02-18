@@ -34,6 +34,11 @@ const ExoplanetTable = ({
         cell: (info) => Number(info.getValue()).toFixed(0),
       },
       {
+        accessorKey: "koi_insol",
+        header: "Insolation (Earth flux)",
+        cell: (info) => Number(info.getValue()).toFixed(2),
+      },
+      {
         accessorKey: "koi_prad",
         header: "Radius (Earth)",
         cell: (info) => Number(info.getValue()).toFixed(2),
@@ -50,11 +55,6 @@ const ExoplanetTable = ({
       {
         accessorKey: "koi_srad",
         header: "Stellar Radius",
-        cell: (info) => Number(info.getValue()).toFixed(2),
-      },
-      {
-        accessorKey: "koi_insol",
-        header: "Insolation (Earth flux)",
         cell: (info) => Number(info.getValue()).toFixed(2),
       },
     ],
@@ -76,7 +76,7 @@ const ExoplanetTable = ({
   });
 
   return (
-    <div className="overflow-x-auto overflow-auto p-4 scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-800 mb-20">
+    <div className="overflow-x-auto overflow-auto p-4 scrollbar-thin scrollbar-thumb-gray-100 scrollbar-track-gray-800 mb-10">
       <table className="w-full">
         <thead className="bg-gray-800">
           {table.getHeaderGroups().map((headerGroup) => (

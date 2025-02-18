@@ -1,6 +1,6 @@
-import { IPlanet } from "@/types/planet.type";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import LoadingButton from "./LoadingButton";
+import { IPlanet } from "@/types/planet.type";
 
 export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
   const [loading, setLoading] = useState(false);
@@ -86,7 +86,7 @@ export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
             <LoadingButton />
           ) : showBubbles ? (
             "Is Habitable"
-          ) : (
+          ): shake ? "Is Not Habitable" : (
             "Check Habitability"
           )}
         </button>
@@ -126,7 +126,75 @@ export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
   );
 };
 
-const ExoplanetGrid = ({ filteredPlanets }: { filteredPlanets: IPlanet[] }) => {
+export const ExoplanetCardWithoutHabitabilityChecker = ({
+  planet,
+}: {
+  planet: IPlanet;
+}) => {
+  return (
+    <div className="align-center bg-gray-800 shadow-md rounded-2xl p-4 w-full max-w-sm">
+      <div className="flex justify-between">
+        <div className="mt-4">
+          <h2 className="text-xl font-semibold">
+            {planet.kepler_name || planet.kepoi_name}
+          </h2>
+          <p className="text-sm text-gray-500">
+            Status: {planet.koi_disposition}
+          </p>
+          <p className="text-sm text-gray-500">
+            Radius: {planet.koi_prad} Earth radii
+          </p>
+          <p className="text-sm text-gray-500">
+            Temperature: {planet.koi_teq}K
+          </p>
+        </div>
+        <div>
+          <img
+            src="/planet.webp"
+            alt="Rotating Planet"
+            className="w-20 h-20 md:w-30 md:h-30 animate-spin-slow rounded-full"
+          />
+          <style>
+            {`
+          @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          .animate-spin-slow {
+            animation: spin-slow 10s linear infinite;
+          }
+        `}
+          </style>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ExoplanetGrid = ({
+  filteredPlanets,
+  loadMore,
+}: {
+  filteredPlanets: IPlanet[];
+  loadMore: () => void;
+}) => {
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!observerRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    observer.observe(observerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="p-6 min-h-screen">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
@@ -134,6 +202,11 @@ const ExoplanetGrid = ({ filteredPlanets }: { filteredPlanets: IPlanet[] }) => {
           <ExoplanetCard key={index} planet={planet} />
         ))}
       </div>
+      {/* Invisible div that triggers loading more items when it enters viewport */}
+      <div
+        ref={observerRef}
+        style={{ height: 20, background: "transparent" }}
+      />
     </div>
   );
 };
