@@ -44,7 +44,7 @@ yarn dev
 Open [http://localhost:3000](http://localhost:3000) on your browser to see the result.
 
 ## Live Demo
-[Habitable Planets](https://habitable-planets.vercel.app/)
+[Kepler Exoplanet Explorer](https://kepler-exoplanet-explorer.vercel.app)
 
 ## Future Enhancements
 - Real-time Data Updates → Fetch live exoplanet discoveries from NASA APIs.
