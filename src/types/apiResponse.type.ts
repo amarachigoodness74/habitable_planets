@@ -12,8 +12,10 @@ export interface IAPIResponseForAllPlanets {
   planets: IPlanet[];
 }
 
+export type ScoredPlanet = IPlanet & { score?: number };
+
 export interface IAPIResponseForHabitablePlanet {
-  planets: IPlanet[];
+  planets: ScoredPlanet[];
   habitablePlanets: IPlanet[];
 }
 

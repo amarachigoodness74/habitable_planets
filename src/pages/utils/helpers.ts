@@ -1,4 +1,4 @@
-import { KoiDisposition } from "@/types/planet.type";
+import { IPlanet, KoiDisposition } from "@/types/planet.type";
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 
@@ -26,26 +26,19 @@ export const useHabitablePlanetsData = () => {
   });
 };
 
-export const isSearch = (kepler_name: string, debouncedSearch: string) => {
-  return kepler_name?.toLowerCase().includes(debouncedSearch.toLowerCase());
-};
-
-export const matchesRadius = (
-  radiusRange: [number, number],
-  koi_prad: number
-) => {
+export const matchesRadius = (radiusRange: number[], koi_prad: number) => {
   return koi_prad >= radiusRange[0] && koi_prad <= radiusRange[1];
 };
 
 export const matchesTemperature = (
-  temperatureRange: [number, number],
+  temperatureRange: number[],
   koi_teq: number
 ) => {
   return koi_teq >= temperatureRange[0] && koi_teq <= temperatureRange[1];
 };
 
 export const matchesInsolationFlux = (
-  insolationFluxRange: [number, number],
+  insolationFluxRange: number[],
   koi_insol: number
 ) => {
   return (
@@ -54,7 +47,7 @@ export const matchesInsolationFlux = (
 };
 
 export const matchesDisposition = (
-  disposition: KoiDisposition,
+  disposition: string,
   koi_disposition: string
 ) => {
   return koi_disposition === disposition;

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import { IPlanet } from "@/types/planet.type";
 import {
@@ -13,6 +12,7 @@ import ScrollToTop from "@/components/ScroolToTopBtn";
 enum types {
   HABITABLE = "habitable",
   NONHABITABLE = "non_habitable",
+  HABITABLE_PLANETS_BY_SCORE = "habitable_planets_by_score",
   ALL = "all",
 }
 
@@ -83,8 +83,8 @@ const HabitableChecker = () => {
 
         {displyType === types.ALL && data && data.planets && (
           <>
-            <h2 className="border border-gray-600 max-w-[500px] rounded-xl text-2xl font-bold my-8 p-2">
-              All Planets
+            <h2 className="border border-gray-600 max-w-[600px] rounded-xl text-2xl font-bold my-8 p-2">
+              Planets By Habitability Score in Ascending Order
             </h2>
             <div className="w-[100%] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
               {visibleGridPlanets &&

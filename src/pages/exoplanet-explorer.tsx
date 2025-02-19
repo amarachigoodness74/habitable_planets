@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { useDebounce } from "use-debounce";
 import { LayoutGrid, Table } from "lucide-react";
+import { Range } from "react-range";
 import Header from "@/components/Header";
 import ExoplanetGrid from "@/components/ExoplanetGrid";
 import ExoplanetTable from "@/components/ExoplanetTable";
 import { IPlanet, KoiDisposition } from "@/types/planet.type";
 import {
-  isSearch,
   matchesDisposition,
   matchesInsolationFlux,
   matchesRadius,
@@ -24,65 +24,71 @@ enum types {
 export default function ExoplanetExplorer() {
   const { data, error, isLoading } = usePlanetsData();
   const [displyType, setDisplyType] = useState<string>(types.TABLE);
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 300);
   const [currentPage, setCurrentPage] = useState(1);
   const [visibleItems, setVisibleItems] = useState(24);
+  // Filtering state variables
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const [radiusRange, setRadiusRange] = useState<number[] | null>(null);
+  const [temperatureRange, setTemperatureRange] = useState<number[] | null>(
+    null
+  );
+  const [insolationFluxRange, setInsolationFluxRange] = useState<
+    number[] | null
+  >(null);
+  const [disposition, setDisposition] = useState<string | null>(null);
 
   const itemsPerPage = 100;
   const totalPages = data ? Math.ceil(data.planets.length / itemsPerPage) : 0;
 
-  // Filtering state variables
-  const [radiusRange, setRadiusRange] = useState<number | null>(null);
-  const [temperatureRange, setTemperatureRange] = useState<number | null>(null);
-  const [insolationFluxRange, setInsolationFluxRange] = useState<number | null>(
-    null
-  );
-  const [disposition, setDisposition] = useState<KoiDisposition | null>(null);
-
   const filteredPlanets = useMemo(() => {
     if (!data?.planets) return [];
 
-    return data.planets.filter((planet: IPlanet) => {
-      if (
-        debouncedSearch &&
-        planet.kepler_name &&
-        isSearch(String(debouncedSearch), planet.kepler_name)
-      ) {
-        return planet;
-      } else if (radiusRange && matchesRadius(radiusRange, planet.koi_prad)) {
-        return planet;
-      } else if (
-        temperatureRange &&
-        matchesTemperature(temperatureRange, planet.koi_teq)
-      ) {
-        return planet;
-      } else if (
-        temperatureRange &&
-        matchesTemperature(temperatureRange, planet.koi_teq)
-      ) {
-        return planet;
-      } else if (
-        insolationFluxRange &&
-        matchesInsolationFlux(insolationFluxRange, planet.koi_insol)
-      ) {
-        return planet;
-      } else if (
-        disposition &&
-        matchesDisposition(disposition, planet.koi_disposition)
-      ) {
-        return planet;
-      } else {
-        return planet;
-      }
-    });
+    let confirmedPlanets = data?.planets;
+
+    if (debouncedSearch && String(debouncedSearch[0]).trim() !== "") {
+      confirmedPlanets = confirmedPlanets.filter(
+        (planet: IPlanet) =>
+          planet.kepler_name &&
+          planet.kepler_name
+            ?.toLowerCase()
+            .includes(debouncedSearch[0].toLowerCase())
+      );
+    }
+    if (radiusRange) {
+      confirmedPlanets = confirmedPlanets.filter(
+        (planet: IPlanet) =>
+          planet.koi_prad && matchesRadius(radiusRange, planet.koi_prad)
+      );
+    }
+    if (temperatureRange) {
+      confirmedPlanets = confirmedPlanets.filter(
+        (planet: IPlanet) =>
+          planet.koi_teq && matchesTemperature(temperatureRange, planet.koi_teq)
+      );
+    }
+    if (insolationFluxRange) {
+      confirmedPlanets = confirmedPlanets.filter(
+        (planet: IPlanet) =>
+          planet.koi_insol &&
+          matchesInsolationFlux(insolationFluxRange, planet.koi_insol)
+      );
+    }
+    if (disposition) {
+      confirmedPlanets = confirmedPlanets.filter(
+        (planet: IPlanet) =>
+          planet.koi_disposition &&
+          matchesDisposition(disposition, planet.koi_disposition)
+      );
+    }
+    return confirmedPlanets;
   }, [
     debouncedSearch,
-    data?.planets,
     radiusRange,
     temperatureRange,
     insolationFluxRange,
     disposition,
+    data?.planets,
   ]);
 
   useEffect(() => {
@@ -111,74 +117,33 @@ export default function ExoplanetExplorer() {
       </p>
     );
 
-  console.log("filter =======================", filteredPlanets.length);
-  console.log("radiusRange =======================", radiusRange);
-  console.log("temperatureRange =======================", temperatureRange);
-  console.log("insolationFluxRange ===========", insolationFluxRange);
-  console.log("disposition ===========", disposition);
   return (
     <>
       <Header />
-      <div className="flex flex-wrap gap-4 p-4 rounded-lg">
-        {/* Radius Filter */}
-        <div className="flex flex-col">
-          <label>Radius (Earth Radii)</label>
-          <input
-            type="range"
-            min="0"
-            max="160"
-            value={radiusRange || 0}
-            onChange={(e) => setRadiusRange(Number(e.target.value))}
-            className="cursor-pointer my-2"
-          />
-          {radiusRange && <span>{radiusRange} Earth Radii</span>}
-        </div>
 
-        {/* Temperature Filter */}
-        <div className="flex flex-col">
-          <label>Temperature (°C)</label>
-          <input
-            type="range"
-            min="0"
-            max="2700"
-            step="10"
-            value={temperatureRange || 0}
-            onChange={(e) => setTemperatureRange(Number(e.target.value))}
-            className="cursor-pointer my-2"
-          />
-          {temperatureRange && <span>{temperatureRange}°C</span>}
-        </div>
-
-        {/* Insolation Flux Filter */}
-        <div className="flex flex-col">
-          <label>Insolation Flux</label>
-          <input
-            type="range"
-            min="0"
-            max="5000"
-            step="100"
-            value={insolationFluxRange || 0}
-            onChange={(e) => setInsolationFluxRange(Number(e.target.value))}
-            className="cursor-pointer my-2"
-          />
-          {insolationFluxRange && <span>{insolationFluxRange}</span>}
-        </div>
-
-        {/* Disposition Dropdown */}
-        <select
-          value={disposition || ""}
-          onChange={(e) => setDisposition(e.target.value)}
-          className="border rounded-md bg-slate-900"
-        >
-          <option value="">All</option>
-          <option value={KoiDisposition.confirmed}>Confirmed</option>
-          <option value={KoiDisposition.candidate}>Candidate</option>
-          <option value={KoiDisposition.false_positive}>False Positive</option>
-        </select>
-      </div>
       <div className="mx-10">
-        <div className="flex gap-4 justify-between px-4">
-          <div className="relative w-[80%] sm:w-[70%] md:w-[60%] lg:w-[40%] mb-5">
+        <div className="flex w-[10%] gap-4 ml-auto mb-12">
+          <button
+            onClick={() => setDisplyType(types.TABLE)}
+            disabled={displyType === types.TABLE}
+            className={`${
+              displyType === types.TABLE ? "px-4 rounded-md bg-gray-800" : ""
+            }`}
+          >
+            <Table />
+          </button>{" "}
+          <button
+            onClick={() => setDisplyType(types.CARD)}
+            disabled={displyType === types.CARD}
+            className={`${
+              displyType === types.CARD ? "px-4 rounded-md bg-gray-800" : ""
+            }`}
+          >
+            <LayoutGrid />
+          </button>
+        </div>
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-end px-4">
+          <div className="relative w-[80%] sm:w-[70%] md:w-[40%] lg:w-[30%]">
             <input
               type="text"
               placeholder="Search exoplanets by Kepler name..."
@@ -195,25 +160,104 @@ export default function ExoplanetExplorer() {
               </button>
             )}
           </div>
-          <div className="flex w-[10%] gap-4">
-            <button
-              onClick={() => setDisplyType(types.TABLE)}
-              disabled={displyType === types.TABLE}
-              className={`${
-                displyType === types.TABLE ? "px-4 rounded-md bg-gray-800" : ""
-              }`}
+          <div className="flex flex-wrap gap-4 rounded-lg">
+            {/* Radius Filter */}
+            <div className="flex flex-col">
+              <label>Radius (Earth Radii)</label>
+              <Range
+                step={10}
+                min={0}
+                max={300}
+                values={radiusRange || [0, 0]}
+                onChange={(vals) => setRadiusRange(vals)}
+                renderTrack={({ props, children }) => (
+                  <div {...props} className="h-2 bg-gray-300 rounded-lg my-1">
+                    {children}
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    className="w-3 h-3 bg-blue-500 rounded-full"
+                  />
+                )}
+              />
+              {radiusRange && (
+                <span>
+                  {radiusRange[0]} - {radiusRange[1]}R⊕
+                </span>
+              )}
+            </div>
+
+            {/* Temperature Filter */}
+            <div className="flex flex-col">
+              <label>Temperature (°C)</label>
+              <Range
+                step={50}
+                min={0}
+                max={3000}
+                values={temperatureRange || [0, 0]}
+                onChange={(vals) => setTemperatureRange(vals)}
+                renderTrack={({ props, children }) => (
+                  <div {...props} className="h-2 bg-gray-300 rounded-lg my-1">
+                    {children}
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    className="w-3 h-3 bg-blue-500 rounded-full"
+                  />
+                )}
+              />
+              {temperatureRange && (
+                <span>
+                  {temperatureRange[0]} - {temperatureRange[1]}°C
+                </span>
+              )}
+            </div>
+
+            {/* Insolation Flux Filter */}
+            <div className="flex flex-col">
+              <label>Insolation Flux</label>
+              <Range
+                step={100}
+                min={0}
+                max={5000}
+                values={insolationFluxRange || [0, 0]}
+                onChange={(vals) => setInsolationFluxRange(vals)}
+                renderTrack={({ props, children }) => (
+                  <div {...props} className="h-2 bg-gray-300 rounded-lg my-1">
+                    {children}
+                  </div>
+                )}
+                renderThumb={({ props }) => (
+                  <div
+                    {...props}
+                    className="w-3 h-3 bg-blue-500 rounded-full"
+                  />
+                )}
+              />
+              {insolationFluxRange && (
+                <span>
+                  {insolationFluxRange[0]} - {insolationFluxRange[1]}W/m²
+                </span>
+              )}
+            </div>
+
+            {/* Disposition Dropdown */}
+            <select
+              value={disposition || ""}
+              onChange={(e) => setDisposition(e.target.value)}
+              className="border rounded-md bg-slate-900"
             >
-              <Table />
-            </button>{" "}
-            <button
-              onClick={() => setDisplyType(types.CARD)}
-              disabled={displyType === types.CARD}
-              className={`${
-                displyType === types.CARD ? "px-4 rounded-md bg-gray-800" : ""
-              }`}
-            >
-              <LayoutGrid />
-            </button>
+              <option value="">All</option>
+              <option value={KoiDisposition.confirmed}>Confirmed</option>
+              <option value={KoiDisposition.candidate}>Candidate</option>
+              <option value={KoiDisposition.false_positive}>
+                False Positive
+              </option>
+            </select>
           </div>
         </div>
 

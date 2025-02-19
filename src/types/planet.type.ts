@@ -9,7 +9,7 @@ export interface IPlanet {
   koi_fpflag_ss?: string;
   koi_fpflag_co?: string;
   koi_fpflag_ec?: string;
-  koi_period?: string;
+  koi_period: number;
   koi_period_err1?: string;
   koi_period_err2?: string;
   koi_time0bk?: string;

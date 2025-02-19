@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import LoadingButton from "./LoadingButton";
 import { IPlanet } from "@/types/planet.type";
+import { ScoredPlanet } from "@/types/apiResponse.type";
 
-export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
+export const ExoplanetCard = ({ planet }: { planet: ScoredPlanet }) => {
   const [loading, setLoading] = useState(false);
   const [showBubbles, setShowBubbles] = useState(false);
   const [shake, setShake] = useState(false);
 
-  const isHabitablePlanet = (planet: IPlanet) => {
+  const isHabitablePlanet = (planet: ScoredPlanet) => {
     return (
       planet?.koi_disposition === "CONFIRMED" &&
       planet?.koi_insol > 0.36 &&
@@ -42,7 +43,7 @@ export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
     <div className="align-center bg-gray-800 shadow-md rounded-2xl p-4 w-full max-w-sm">
       <div className="flex justify-between">
         <div className="mt-4">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-bold">
             {planet.kepler_name || planet.kepoi_name}
           </h2>
           <p className="text-sm text-gray-500">
@@ -54,6 +55,11 @@ export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
           <p className="text-sm text-gray-500">
             Temperature: {planet.koi_teq}K
           </p>
+          {planet.score && (
+            <p className="text-sm text-gray-300 font-semibold">
+              Score: {planet.score}%
+            </p>
+          )}
         </div>
         <div>
           <img
@@ -86,7 +92,9 @@ export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
             <LoadingButton />
           ) : showBubbles ? (
             "Is Habitable"
-          ): shake ? "Is Not Habitable" : (
+          ) : shake ? (
+            "Is Not Habitable"
+          ) : (
             "Check Habitability"
           )}
         </button>
@@ -129,13 +137,13 @@ export const ExoplanetCard = ({ planet }: { planet: IPlanet }) => {
 export const ExoplanetCardWithoutHabitabilityChecker = ({
   planet,
 }: {
-  planet: IPlanet;
+  planet: ScoredPlanet;
 }) => {
   return (
     <div className="align-center bg-gray-800 shadow-md rounded-2xl p-4 w-full max-w-sm">
       <div className="flex justify-between">
         <div className="mt-4">
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-bold">
             {planet.kepler_name || planet.kepoi_name}
           </h2>
           <p className="text-sm text-gray-500">
@@ -147,6 +155,11 @@ export const ExoplanetCardWithoutHabitabilityChecker = ({
           <p className="text-sm text-gray-500">
             Temperature: {planet.koi_teq}K
           </p>
+          {planet.score && (
+            <p className="text-sm text-gray-300 font-semibold">
+              Score: {planet.score}%
+            </p>
+          )}
         </div>
         <div>
           <img
