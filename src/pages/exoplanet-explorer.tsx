@@ -12,7 +12,7 @@ import {
   matchesRadius,
   matchesTemperature,
   usePlanetsData,
-} from "./utils/helpers";
+} from "../utils/helpers";
 import PageLoader from "@/components/PageLoader";
 import ScrollToTop from "@/components/ScroolToTopBtn";
 

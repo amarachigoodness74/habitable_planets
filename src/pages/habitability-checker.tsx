@@ -5,7 +5,7 @@ import {
   ExoplanetCard,
   ExoplanetCardWithoutHabitabilityChecker,
 } from "@/components/ExoplanetGrid";
-import { useHabitablePlanetsData } from "./utils/helpers";
+import { useHabitablePlanetsData } from "../utils/helpers";
 import PageLoader from "@/components/PageLoader";
 import ScrollToTop from "@/components/ScroolToTopBtn";
 

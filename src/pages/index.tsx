@@ -20,7 +20,7 @@ import {
   EarthLikeCustomTooltip,
   EarthLikeSunlightCustomTooltip,
 } from "@/components/CustomTooltip";
-import { fetchPlanetsData } from "./utils/helpers";
+import { fetchPlanetsData } from "../utils/helpers";
 import PageLoader from "@/components/PageLoader";
 import ScrollToTop from "@/components/ScroolToTopBtn";
 
